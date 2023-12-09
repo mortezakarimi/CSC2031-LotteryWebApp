@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="column is-6 is-offset-3">
+    <h3 class="title is-3">Setup 2FA</h3>
+
+    <div class="box">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="notification is-danger">
+            {{ messages[0] }}. Go to <a href="{{ url_for('users.login') }}">login page</a>.
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <h5>Instructions!</h5>
+        <ul>
+            <li>Download <a
+                    href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en&gl=US"
+                    class="has-text-link"
+                    target="_blank">Google Authenticator</a> on your mobile.
+            </li>
+            <li>Set up a new authenticator.</li>
+        </ul>
+        <div class="text-center">
+            <figure class="image is-200x200">
+                <img src="data:image/png;base64, {{ qr_image }}" alt="Secret Token" width="200" height="200"/>
+            </figure>
+        </div>
+        <div class="field">
+            <label for="secret" class="label">Secret Token</label>
+            <div class="control">
+                <input type="text" class="input" id="secret" value="{{ secret }}" readonly>
+            </div>
+        </div>
+        <form method="POST">
+            <div class="field">
+                {{ form.csrf_token() }}
+                <div class="control">
+                    {{ form.otp(class="input", placeholder="OTP") }}
+                    {% if form.otp.errors %}
+                    <ul class="has-text-danger">
+                        {% for error in form.otp.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                {{ form.submit(class="button is-info is-centered") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}
