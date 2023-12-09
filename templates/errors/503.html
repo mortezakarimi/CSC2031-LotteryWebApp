@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h3 class="title is-3">500 - Service Unavailable</h3>
+
+<p>{{ e.description }}</p>
+<p>For more information you can read following <a class="has-text-link" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{{e.code}}"
+                                                  target="_blank">link</a></p>
+
+{% endblock %}
