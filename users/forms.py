@@ -1,7 +1,7 @@
 import re
 
-from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, EmailField, validators, ValidationError, IntegerField
+from flask_wtf import FlaskForm, RecaptchaField
+from wtforms import StringField, SubmitField, PasswordField, EmailField, validators, ValidationError
 
 
 class PasswordValidator(object):
@@ -68,7 +68,7 @@ passwordValidator = PasswordValidator
 
 
 class RegisterForm(FlaskForm):
-    email = EmailField(validators=[validators.Email(), validators.DataRequired()])
+    email = StringField(validators=[validators.Email(), validators.DataRequired()])
     firstname = StringField(
         validators=[validators.Regexp(regex=r"^[^*?!'^+%&\/()=}\]\[{\$#@<>]*$",
                                       message="Firstname must not contain the characters: * ? ! ' ^ + % & / ( ) = } ] "
@@ -100,7 +100,15 @@ class RegisterForm(FlaskForm):
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[validators.DataRequired()])
     password = PasswordField("Password", validators=[validators.DataRequired()])
-    submit = SubmitField()
+    time_base_pin = StringField("Time-based PIN",
+                                validators=[validators.DataRequired(), validators.Length(min=6, max=6)])
+    postcode = StringField(
+        validators=[validators.regexp(regex=r"^([A-Z])([A-Z]|\d)(\d){0,1}\s\d([A-Z]{2})$",
+                                      message="Postal Code should follow one of following formats: XY YXX, XYY YXX, "
+                                              "XXY YXX uppercase letters (X) digits (Y)"),
+                    validators.DataRequired()])
+    recaptcha = RecaptchaField()
+    submit = SubmitField("Login")
 
 
 class TwoFactorForm(FlaskForm):

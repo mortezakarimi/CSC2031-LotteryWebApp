@@ -9,3 +9,6 @@ flask-bcrypt
 Flask-Migrate
 pyotp
 qrcode
+python-dotenv
+flask-talisman
+pyopenssl

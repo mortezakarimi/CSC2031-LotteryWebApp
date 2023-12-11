@@ -1,6 +1,8 @@
-from app import db, app, bcrypt
-from flask_login import UserMixin
 import pyotp
+from flask_login import UserMixin
+
+from app import db, app, bcrypt
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -45,8 +47,12 @@ class User(db.Model, UserMixin):
         totp = pyotp.parse_uri(self.get_authentication_setup_uri())
         return totp.verify(user_otp)
 
+    def is_password_valid(self, user_password):
+        return bcrypt.check_password_hash(self.password, user_password)
+
     def __repr__(self):
         return f"<user {self.email}>"
+
 
 class Draw(db.Model):
     __tablename__ = 'draws'

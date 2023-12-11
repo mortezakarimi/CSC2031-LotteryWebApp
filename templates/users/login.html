@@ -2,8 +2,86 @@
 
 {% block content %}
 
+<div class="column is-5 is-offset-4">
     <h3 class="title is-3">Login</h3>
+    <div class="box">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="notification is-danger">
+            {{ messages[0] }}
+        </div>
+        {% endif %}
+        {% endwith %}
+        <form method="POST">
+            <div class="field">
+                {{ form.csrf_token() }}
+                <div class="control">
+                    {{ form.username(class="input", placeholder="Username") }}
+                    {% if form.username.errors %}
+                    <ul class="has-text-danger">
+                        {% for error in form.username.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    {{ form.password(class="input", placeholder="Password") }}
+                    {% if form.password.errors %}
+                    <ul class="has-text-danger">
+                        {% for error in form.password.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    {{ form.time_base_pin(class="input", placeholder="Time Base PIN") }}
+                    {% if form.time_base_pin.errors %}
+                    <ul class="has-text-danger">
+                        {% for error in form.time_base_pin.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
 
-    <p>TODO</p>
+            </div>
+            <div class="field">
+                <div class="control">
+                    {{ form.postcode(class="input", placeholder="Time Base PIN") }}
+                    {% if form.postcode.errors %}
+                    <ul class="has-text-danger">
+                        {% for error in form.postcode.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+            </div>
+            <div class="field">
+                <div class="control">
+                    {{ form.recaptcha() }}
+                    {% if form.recaptcha.errors %}
+                    <ul class="has-text-danger">
+                        {% for error in form.recaptcha.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                {{ form.submit(class="button is-info is-centered") }}
+            </div>
+        </form>
+    </div>
+</div>
 
 {% endblock %}

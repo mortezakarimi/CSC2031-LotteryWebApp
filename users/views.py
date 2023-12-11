@@ -5,7 +5,7 @@ from flask_login import login_required, login_user, current_user
 from app import db
 from models import User
 from shared.utils import get_b64encoded_qr_image
-from users.forms import RegisterForm, TwoFactorForm
+from users.forms import RegisterForm, TwoFactorForm, LoginForm
 
 # CONFIG
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
@@ -52,9 +52,18 @@ def register():
 
 
 # view user login
-@users_blueprint.route('/login')
+@users_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template('users/login.html')
+    # create login form object
+    form = LoginForm()
+
+    # if request method is POST or form is valid
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.username.data).first()
+        user.is_password_valid(form.password.data)
+        user.is_otp_valid(form.time_base_pin.data)
+        flash("You have 1 remaining attempts", "danger")
+    return render_template('users/login.html', form=form)
 
 
 # view user account

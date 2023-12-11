@@ -1,18 +1,18 @@
 # IMPORTS
-import werkzeug
+import os
+
+import werkzeug.exceptions
 from flask import Flask, render_template
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager  # Add this line
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.exceptions import BadRequest
-
+from flask_talisman import Talisman
+from dotenv import load_dotenv
+load_dotenv()  # take environment variables from .env.
 # CONFIG
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'LongAndRandomSecretKey'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///lottery.db'
-app.config['SQLALCHEMY_ECHO'] = True
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config.from_mapping(os.environ)
 bcrypt = Bcrypt(app)
 # initialise database
 db = SQLAlchemy(app)
@@ -20,6 +20,27 @@ migrate = Migrate(app, db)
 
 login_manager = LoginManager()  # Add this line
 login_manager.init_app(app)  # Add this line
+Talisman(app, content_security_policy={
+    'default-src': [
+        '\'self\'',
+        'cdnjs.cloudflare.com',
+        'www.google.com',
+        'www.gstatic.com'
+    ],
+    'style-src': [
+        '\'self\'',
+        'cdnjs.cloudflare.com'
+    ],
+    'script-src': [
+        '\'self\'',
+        'www.google.com',
+        'www.gstatic.com'
+    ],
+    'img-src': [
+        '\'self\'',
+        'data:',
+    ]
+}, content_security_policy_nonce_in=['script-src', 'style-src'])
 
 
 # HOME PAGE VIEW
@@ -76,4 +97,4 @@ def load_user(user_id):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(ssl_context=(app.config.get('SSL_PUBLIC_KEY_PATH'), app.config.get('SSL_PRIVATE_KEY_PATH')))
