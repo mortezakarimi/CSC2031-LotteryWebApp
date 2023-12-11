@@ -1,7 +1,7 @@
 import re
 
 from flask_wtf import FlaskForm, RecaptchaField
-from wtforms import StringField, SubmitField, PasswordField, EmailField, validators, ValidationError
+from wtforms import StringField, SubmitField, PasswordField, validators, ValidationError
 
 
 class PasswordValidator(object):
@@ -67,6 +67,48 @@ class PasswordValidator(object):
 passwordValidator = PasswordValidator
 
 
+class NotEqualTo:
+    """
+    Compares the values of two fields should not equal.
+
+    :param fieldname:
+        The name of the other field to compare to.
+    :param message:
+        Error message to raise in case of a validation error. Can be
+        interpolated with `%(other_label)s` and `%(other_name)s` to provide a
+        more helpful error.
+    """
+
+    def __init__(self, fieldname, message=None):
+        self.fieldname = fieldname
+        self.message = message
+
+    def __call__(self, form, field):
+        try:
+            other = form[self.fieldname]
+        except KeyError as exc:
+            raise ValidationError(
+                field.gettext("Invalid field name '%s'.") % self.fieldname
+            ) from exc
+        if field.data != other.data:
+            return
+
+        d = {
+            "other_label": hasattr(other, "label")
+                           and other.label.text
+                           or self.fieldname,
+            "other_name": self.fieldname,
+        }
+        message = self.message
+        if message is None:
+            message = field.gettext("Field must not be equal to %(other_label)s.")
+
+        raise ValidationError(message % d)
+
+
+notEqualTo = NotEqualTo
+
+
 class RegisterForm(FlaskForm):
     email = StringField(validators=[validators.Email(), validators.DataRequired()])
     firstname = StringField(
@@ -115,3 +157,19 @@ class TwoFactorForm(FlaskForm):
     otp = StringField('Enter OTP', validators=[
         validators.InputRequired(), validators.Length(min=6, max=6)])
     submit = SubmitField()
+
+
+class ChangePasswordForm(FlaskForm):
+    current_password = PasswordField("Current Password",
+                                     validators=[validators.DataRequired()])
+    new_password = PasswordField("New Password", validators=[passwordValidator(), validators.DataRequired(),
+                                                             notEqualTo('current_password')])
+    confirm_password = PasswordField(
+        "Confirm Password",
+        validators=[
+            passwordValidator(),
+            validators.EqualTo('new_password'),
+            validators.DataRequired()
+        ]
+    )
+    submit = SubmitField('Change Password')

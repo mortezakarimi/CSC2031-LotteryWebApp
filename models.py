@@ -50,6 +50,9 @@ class User(db.Model, UserMixin):
     def is_password_valid(self, user_password):
         return bcrypt.check_password_hash(self.password, user_password)
 
+    def set_password(self, user_password):
+        self.password = bcrypt.generate_password_hash(user_password)
+
     def is_postcode_valid(self, user_postcode):
         return self.postcode == user_postcode
 

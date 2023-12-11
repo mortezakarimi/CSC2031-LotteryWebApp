@@ -2,36 +2,58 @@
 
 {% block content %}
 
-<div class="column is-6 is-offset-3">
-    <h3 class="title">Your Account</h3>
+    <div class="column is-6 is-offset-3">
+        <h3 class="title">Your Account</h3>
 
-    <div class="box">
-        <table class="table">
-        <tbody>
-            <tr>
-                <th>Account No.</th>
-                <th>{{ acc_no }}</th>
-            </tr>
-            <tr>
-                <th>Email</th>
-                <th>{{ email }}</th>
-            </tr>
-            <tr>
-                <th>First Name</th>
-                <th>{{ firstname }}</th>
-            </tr>
-            <tr>
-                <th>Last Name</th>
-                <th>{{ lastname }}</th>
-            </tr>
-            <tr>
-                <th>Phone No.</th>
-                <th>{{ phone }}</th>
-            </tr>
-        </tbody>
-        </table>
+        <div class="box">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="notification is-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <table class="table">
+                <tbody>
+                <tr>
+                    <th>Account No.</th>
+                    <th>{{ acc_no }}</th>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <th>{{ email }}</th>
+                </tr>
+                <tr>
+                    <th>First Name</th>
+                    <th>{{ firstname }}</th>
+                </tr>
+                <tr>
+                    <th>Last Name</th>
+                    <th>{{ lastname }}</th>
+                </tr>
+                <tr>
+                    <th>Phone No.</th>
+                    <th>{{ phone }}</th>
+                </tr>
+                <tr>
+                    <th>Role</th>
+                    <th>{{ role }}</th>
+                </tr>
+                <tr>
+                    <th>Date of Birth.</th>
+                    <th>{{ date_of_birth }}</th>
+                </tr>
+                <tr>
+                    <th>Postcode</th>
+                    <th>{{ postcode }}</th>
+                </tr>
+                </tbody>
+            </table>
+            <a class="button is-info is-centered" href="{{ url_for('users.change_password') }}">Change Password</a>
+        </div>
     </div>
-</div>
 
 
 {% endblock %}

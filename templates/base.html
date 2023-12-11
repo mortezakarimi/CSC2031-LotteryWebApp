@@ -38,13 +38,13 @@
                             </a>
                         {% endif %}
 
-                        {% if current_user.is_authenticated and current_user.is_user %}
+                        {% if current_user.is_authenticated and current_user.is_user() %}
                             <a href="{{ url_for('lottery.lottery') }}" class="navbar-item">
                                 Lottery
                             </a>
                         {% endif %}
 
-                        {% if current_user.is_authenticated and current_user.is_admin %}
+                        {% if current_user.is_authenticated and current_user.is_admin() %}
                             <a href="{{ url_for('admin.admin') }}" class="navbar-item">
                                 Admin
                             </a>
@@ -71,5 +71,7 @@
         </div>
     </div>
 </section>
+{% block script %}
+{% endblock %}
 </body>
 </html>
