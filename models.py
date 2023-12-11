@@ -50,6 +50,15 @@ class User(db.Model, UserMixin):
     def is_password_valid(self, user_password):
         return bcrypt.check_password_hash(self.password, user_password)
 
+    def is_postcode_valid(self, user_postcode):
+        return self.postcode == user_postcode
+
+    def is_admin(self):
+        return self.role == 'admin'
+
+    def is_user(self):
+        return self.role == 'user'
+
     def __repr__(self):
         return f"<user {self.email}>"
 

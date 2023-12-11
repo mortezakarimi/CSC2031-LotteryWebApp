@@ -6,60 +6,70 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CSC2031</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css"/>
 </head>
 
 <body>
 
-    <style nonce="{{ csp_nonce() }}">
+<style nonce="{{ csp_nonce() }}">
     .table {
-      margin-left: auto;
-      margin-right: auto;
+        margin-left: auto;
+        margin-right: auto;
     }
-    </style>
+</style>
 
-    <section class="hero is-primary is-fullheight">
+<section class="hero is-primary is-fullheight">
 
-        <div class="hero-head">
-            <nav class="navbar">
-                <div class="container">
+    <div class="hero-head">
+        <nav class="navbar">
+            <div class="container">
 
-                    <div id="navbarMenuHeroA" class="navbar-menu">
-                       <div class="navbar-end">
-                            <a href="{{ url_for('index') }}" class="navbar-item">
-                               Home
-                            </a>
+                <div id="navbarMenuHeroA" class="navbar-menu">
+                    <div class="navbar-end">
+                        <a href="{{ url_for('index') }}" class="navbar-item">
+                            Home
+                        </a>
+                        {% if current_user.is_anonymous %}
                             <a href="{{ url_for('users.register') }}" class="navbar-item">
                                 Register
                             </a>
                             <a href="{{ url_for('users.login') }}" class="navbar-item">
                                 Login
                             </a>
+                        {% endif %}
+
+                        {% if current_user.is_authenticated and current_user.is_user %}
                             <a href="{{ url_for('lottery.lottery') }}" class="navbar-item">
                                 Lottery
                             </a>
+                        {% endif %}
+
+                        {% if current_user.is_authenticated and current_user.is_admin %}
                             <a href="{{ url_for('admin.admin') }}" class="navbar-item">
                                 Admin
                             </a>
+                        {% endif %}
+
+                        {% if current_user.is_authenticated %}
                             <a href="{{ url_for('users.account') }}" class="navbar-item">
                                 Account
                             </a>
-                            {#TODO: LOGOUT#}
-                            <a href="" class="navbar-item">
+                            <a href="{{ url_for('users.logout') }}" class="navbar-item">
                                 Logout
                             </a>
-                       </div>
+                        {% endif %}
                     </div>
                 </div>
-            </nav>
-        </div>
-
-        <div class="hero-body">
-            <div class="container has-text-centered">
-               {% block content %}
-               {% endblock %}
             </div>
+        </nav>
+    </div>
+
+    <div class="hero-body">
+        <div class="container has-text-centered">
+            {% block content %}
+            {% endblock %}
         </div>
-    </section>
+    </div>
+</section>
 </body>
 </html>

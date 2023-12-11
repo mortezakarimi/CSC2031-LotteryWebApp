@@ -2,13 +2,14 @@
 import os
 
 import werkzeug.exceptions
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for, request
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager  # Add this line
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_talisman import Talisman
 from dotenv import load_dotenv
+
 load_dotenv()  # take environment variables from .env.
 # CONFIG
 app = Flask(__name__)
