@@ -6,6 +6,7 @@ from flask_login import login_required, current_user
 
 from app import db, access_required
 from models import User, Draw
+from users.forms import RegisterForm
 
 # CONFIG
 admin_blueprint = Blueprint('admin', __name__, template_folder='templates')
@@ -47,14 +48,15 @@ def generate_winning_draw():
     winning_numbers_string = winning_numbers_string[:-1]
 
     # create a new draw object.
-    new_winning_draw = Draw(user_id=current_user.id, numbers=winning_numbers_string, master_draw=True, lottery_round=lottery_round)
+    new_winning_draw = Draw(user_id=current_user.id, numbers=winning_numbers_string, master_draw=True,
+                            lottery_round=lottery_round)
 
     # add the new winning draw to the database
     db.session.add(new_winning_draw)
     db.session.commit()
 
     # re-render admin page
-    flash("New winning draw %s added." % winning_numbers_string)
+    flash("New winning draw %s added." % winning_numbers_string, category='lottery')
     return redirect(url_for('admin.admin'))
 
 
@@ -168,3 +170,43 @@ def view_user_activity():
     current_users = User.query.filter_by(role='user').all()
 
     return render_template('admin/admin.html', name=current_user.firstname, current_users_logs=current_users)
+
+
+# view last 10 log entries
+@admin_blueprint.route('/register_admin', methods=['GET', 'POST'])
+@login_required
+@access_required(role="admin")
+def register():
+    # create signup form object
+    form = RegisterForm()
+
+    # if request method is POST or form is valid
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        # if this returns a user, then the email already exists in database
+
+        # if email already exists redirect user back to signup page with error message so user can try again
+        if not user:
+            # create a new user with the form data
+            new_user = User(email=form.email.data,
+                            firstname=form.firstname.data,
+                            lastname=form.lastname.data,
+                            phone=form.phone.data,
+                            password=form.password.data,
+                            role='admin',
+                            date_of_birth=form.date_of_birth.data,
+                            postcode=form.postcode.data
+                            )
+
+            new_user.registration_log()
+            # add the new user to the database
+            db.session.add(new_user)
+            db.session.commit()
+
+            flash('New admin user has been registered successfully', 'success')
+            return redirect(url_for('admin.admin'))
+
+        flash('Email address already exists', 'danger')
+
+    # if request method is GET or form not valid re-render signup page
+    return render_template('admin/register.html', form=form)

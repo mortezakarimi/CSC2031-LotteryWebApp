@@ -1,1 +1,4 @@
 [2023-12-12 13:03:59,575] [RemoteAddress(127.0.0.1) | URL(https://127.0.0.1:5000/lottery)] [ERROR | models] Unauthorised Access: UserID(2) Username(kyher@mailinator.com) Role(admin) RequestedRole(user) RemoteAddress(127.0.0.1)
+[2023-12-12 14:43:48,122] [RemoteAddress(127.0.0.1) | URL(https://127.0.0.1:5000/register_admin)] [INFO | models] User registered with Username(xylily@mailinator.com) RemoteAddress(127.0.0.1)
+[2023-12-12 14:45:09,213] [RemoteAddress(127.0.0.1) | URL(https://127.0.0.1:5000/register_admin)] [INFO | models] User registered with Username(tomahobymi@mailinator.com) RemoteAddress(127.0.0.1)
+[2023-12-12 14:49:24,349] [RemoteAddress(127.0.0.1) | URL(https://127.0.0.1:5000/register_admin)] [INFO | models] User registered with Username(vyqobu@mailinator.com) RemoteAddress(127.0.0.1)

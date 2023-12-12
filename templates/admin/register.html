@@ -1,0 +1,19 @@
+{% extends "users/_register_form.html" %}
+
+{% block content %}
+    <div class="column is-5 is-offset-4">
+        <h3 class="title is-3">Add New Admin</h3>
+        <div class="box">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="notification is-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            {{ super() }}
+        </div>
+    </div>
+{% endblock %}

@@ -1,120 +1,17 @@
-{% extends "base.html" %}
+{% extends "users/_register_form.html" %}
 
 {% block content %}
-<div class="column is-5 is-offset-4">
-    <h3 class="title is-3">Register</h3>
-    <div class="box">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <div class="notification is-danger">
-            {{ messages[0] }}. Go to <a href="{{ url_for('users.login') }}">login page</a>.
+    <div class="column is-5 is-offset-4">
+        <h3 class="title is-3">Register</h3>
+        <div class="box">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="notification is-danger">
+                        {{ messages[0] }}. Go to <a href="{{ url_for('users.login') }}">login page</a>.
+                    </div>
+                {% endif %}
+            {% endwith %}
+            {{ super() }}
         </div>
-        {% endif %}
-        {% endwith %}
-        <form method="POST">
-            <div class="field">
-                {{ form.csrf_token() }}
-                <div class="control">
-                    {{ form.email(class="input", placeholder="Email") }}
-                    {% if form.email.errors %}
-                    <ul class="has-text-danger">
-                        {% for error in form.email.errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    {{ form.firstname(class="input", placeholder="First Name") }}
-                    {% if form.firstname.errors %}
-                    <ul class="has-text-danger">
-                        {% for error in form.firstname.errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    {{ form.lastname(class="input", placeholder="Last Name") }}
-                    {% if form.lastname.errors %}
-                    <ul class="has-text-danger">
-                        {% for error in form.lastname.errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    {{ form.phone(class="input", placeholder="Phone") }}
-                    {% if form.phone.errors %}
-                    <ul class="has-text-danger">
-                        {% for error in form.phone.errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    {{ form.password(class="input", placeholder="Password") }}
-                    {% if form.password.errors %}
-                    <ul class="has-text-danger">
-                        {% for error in form.password.errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    {{ form.confirm_password(class="input", placeholder="Confirm Password") }}
-                    {% if form.confirm_password.errors %}
-                    <ul class="has-text-danger">
-                        {% for error in form.confirm_password.errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </div>
-
-            </div>
-            <div class="field">
-                <div class="control">
-                    {{ form.date_of_birth(class="input", pattern='^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(19|20)\d\d$', placeholder="Date Of Birth") }}
-                    {% if form.date_of_birth.errors %}
-                    <ul class="has-text-danger">
-                        {% for error in form.date_of_birth.errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="field">
-                <div class="control">
-                    {{ form.postcode(class="input", placeholder="Postcode") }}
-                    {% if form.postcode.errors %}
-                    <ul class="has-text-danger">
-                        {% for error in form.postcode.errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </div>
-            </div>
-            <div>
-                {{ form.submit(class="button is-info is-centered") }}
-            </div>
-        </form>
     </div>
-</div>
 {% endblock %}
