@@ -20,7 +20,7 @@ def is_login_attempt_available():
 
 
 def is_login_ok(form):
-    user = User.query.filter_by(email=form.username.data).first()
+    user: User = User.query.filter_by(email=form.username.data).first()
     user_error = user is None
 
     if user_error:

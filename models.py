@@ -1,7 +1,11 @@
-import pyotp
-from flask_login import UserMixin
+from datetime import datetime
 
-from app import db, app, bcrypt
+import pyotp
+from flask import request
+from flask_login import UserMixin
+from sqlalchemy import func
+
+from app import db, app, bcrypt, activity_logger
 
 
 class User(db.Model, UserMixin):
@@ -23,7 +27,13 @@ class User(db.Model, UserMixin):
     postcode = db.Column(db.String(7), nullable=False)
     is_two_factor_authentication_enabled = db.Column(
         db.Boolean, nullable=False, default=False)
-    secret_token = db.Column(db.String, unique=True)
+    secret_token = db.Column(db.String(), unique=True)
+    register_date = db.Column(db.DateTime(), nullable=False, default=func.current_timestamp())
+    previous_login = db.Column(db.DateTime(), nullable=True)
+    current_login = db.Column(db.DateTime(), nullable=True)
+    previous_login_ip = db.Column(db.String(100), nullable=True)
+    current_login_ip = db.Column(db.String(100), nullable=True)
+    total_login = db.Column(db.Integer, nullable=False, default=0)
 
     # Define the relationship to Draw
     draws = db.relationship('Draw')
@@ -38,6 +48,8 @@ class User(db.Model, UserMixin):
         self.date_of_birth = date_of_birth
         self.postcode = postcode
         self.secret_token = pyotp.random_base32()
+        self.total_login = 0
+        self.register_date = datetime.now()
 
     def get_authentication_setup_uri(self):
         return pyotp.totp.TOTP(self.secret_token).provisioning_uri(
@@ -61,6 +73,27 @@ class User(db.Model, UserMixin):
 
     def is_user(self):
         return self.role == 'user'
+
+    def registration_log(self):
+        activity_logger.info("User registered with Username(%s) RemoteAddress(%s)", self.email, request.remote_addr,
+                             extra={"user": self.id, "request_url": request.url, "remote_addr": request.remote_addr})
+
+    def update_login_log(self):
+        activity_logger.info("User Logged in with UserID(%s) Username(%s) RemoteAddress(%s)", self.id, self.email,
+                             request.remote_addr,
+                             extra={"user": self.id, "request_url": request.url, "remote_addr": request.remote_addr})
+        self.total_login = self.total_login + 1
+        self.previous_login_ip = self.current_login_ip
+        self.previous_login = self.current_login
+        self.current_login = datetime.now()
+        self.current_login_ip = request.remote_addr
+
+    def log_unauthorised_access(self, requested_role):
+        activity_logger.error(
+            "Unauthorised Access: UserID(%s) Username(%s) Role(%s) RequestedRole(%s) RemoteAddress(%s)", self.id,
+            self.email, self.role, requested_role,
+            request.remote_addr,
+            extra={"user": self.id, "request_url": request.url, "remote_addr": request.remote_addr})
 
     def __repr__(self):
         return f"<user {self.email}>"

@@ -1,9 +1,9 @@
 # IMPORTS
 
-from flask import Blueprint, render_template, flash, redirect, url_for, current_app, session
+from flask import Blueprint, render_template, flash, redirect, url_for, current_app, session, request
 from flask_login import login_user, current_user, login_required, logout_user
 
-from app import db
+from app import db, activity_logger, access_required
 from models import User
 from shared.utils import get_b64encoded_qr_image
 from users.forms import RegisterForm, TwoFactorForm, LoginForm, ChangePasswordForm
@@ -41,6 +41,7 @@ def register():
                         postcode=form.postcode.data
                         )
 
+        new_user.registration_log()
         # add the new user to the database
         db.session.add(new_user)
         db.session.commit()
@@ -56,6 +57,7 @@ def register():
 # view user login
 @users_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
+    session.pop('login_attempts', None)
     if current_user.is_authenticated:
         return redirect(url_for('users.account'))
 
@@ -70,7 +72,10 @@ def login():
 
             if login_ok:
                 session.pop('login_attempts', None)
+                user.update_login_log()
+                db.session.commit()
                 login_user(user)
+
                 if user.is_admin():
                     return redirect(url_for('admin.admin'))
                 elif user.is_user():
@@ -84,11 +89,16 @@ def login():
                 f"You have exhausted your login attempts. Please try again after {int(current_app.config['LOGIN_ATTEMPTS_HOURS_LIMIT'])} hours.",
                 "danger")
 
+        activity_logger.warn("Invalid log in attempts Username(%s) RemoteAddress(%s)", form.username.data,
+                             request.remote_addr,
+                             extra={"user": "", "request_url": request.url, "remote_addr": request.remote_addr})
+
     return render_template('users/login.html', form=form)
 
 
 @users_blueprint.route("/logout")
 @login_required
+@access_required(role="any")
 def logout():
     logout_user()
     return redirect(url_for('index'))
@@ -96,6 +106,7 @@ def logout():
 
 @users_blueprint.route("/change-password", methods=['GET', 'POST'])
 @login_required
+@access_required(role="any")
 def change_password():
     # create login form object
     form = ChangePasswordForm()
@@ -115,6 +126,7 @@ def change_password():
 
 # view user account
 @users_blueprint.route('/account')
+@access_required(role="any")
 def account():
     if not current_user.is_two_factor_authentication_enabled:
         return redirect(url_for('users.two_factor_setup'))
@@ -133,6 +145,7 @@ def account():
 # 2fa setup page
 @users_blueprint.route('/2fa-setup', methods=["GET", "POST"])
 @login_required
+@access_required(role="any")
 def two_factor_setup():
     secret = current_user.secret_token
     uri = current_user.get_authentication_setup_uri()
@@ -143,14 +156,14 @@ def two_factor_setup():
     if form.validate_on_submit():
         if current_user.is_otp_valid(form.otp.data):
             if current_user.is_two_factor_authentication_enabled:
-                flash("2FA verification successful. You are logged in!", "success")
+                flash("2FA verification successful.", "success")
                 # sends user to login page
                 return redirect(url_for('users.login'))
             else:
                 try:
                     current_user.is_two_factor_authentication_enabled = True
                     db.session.commit()
-                    flash("2FA setup successful. You are logged in!", "success")
+                    flash("2FA setup successful.", "success")
                     # sends user to login page
                     return redirect(url_for('users.login'))
                 except Exception:

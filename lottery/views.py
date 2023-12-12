@@ -1,6 +1,8 @@
 # IMPORTS
-from flask import Blueprint, render_template, request, flash, redirect, url_for
-from app import db
+from flask import Blueprint, render_template, flash, redirect, url_for
+from flask_login import login_required
+
+from app import db, access_required
 from lottery.forms import DrawForm
 from models import Draw
 
@@ -11,6 +13,8 @@ lottery_blueprint = Blueprint('lottery', __name__, template_folder='templates')
 # VIEWS
 # view lottery page
 @lottery_blueprint.route('/lottery')
+@login_required
+@access_required(role="user")
 def lottery():
     return render_template('lottery/lottery.html', name="PLACEHOLDER FOR FIRSTNAME")
 
@@ -22,11 +26,11 @@ def create_draw():
 
     if form.validate_on_submit():
         submitted_numbers = (str(form.number1.data) + ' '
-                          + str(form.number2.data) + ' '
-                          + str(form.number3.data) + ' '
-                          + str(form.number4.data) + ' '
-                          + str(form.number5.data) + ' '
-                          + str(form.number6.data))
+                             + str(form.number2.data) + ' '
+                             + str(form.number3.data) + ' '
+                             + str(form.number4.data) + ' '
+                             + str(form.number5.data) + ' '
+                             + str(form.number6.data))
         # create a new draw with the form data.
         new_draw = Draw(user_id=1, numbers=submitted_numbers, master_draw=False, lottery_round=0)
         # add the new draw to the database
@@ -79,5 +83,3 @@ def play_again():
 
     flash("All played draws deleted.")
     return lottery()
-
-

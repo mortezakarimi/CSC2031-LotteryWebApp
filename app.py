@@ -1,14 +1,44 @@
 # IMPORTS
+import logging
 import os
+from functools import wraps
+from logging.config import dictConfig
 
 import werkzeug.exceptions
-from flask import Flask, render_template, redirect, url_for, request
+from dotenv import load_dotenv
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask.logging import default_handler
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager  # Add this line
+from flask_login import LoginManager, current_user  # Add this line
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_talisman import Talisman
-from dotenv import load_dotenv
+
+dictConfig({
+
+    "version": 1,
+    "formatters": {
+        "activty": {
+            "format": "[%(asctime)s] [RemoteAddress(%(remote_addr)s) | URL(%(request_url)s)] [%(levelname)s | %(module)s] %(message)s",
+        },
+    },
+    "handlers": {
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "lottery.log",
+            "formatter": "activty",
+        },
+    },
+
+    "loggers": {
+        "activity-logger": {
+            "level": "INFO",
+            "handlers": ["file"],
+            "propagate": False,
+        }
+    },
+
+})
 
 load_dotenv()  # take environment variables from .env.
 # CONFIG
@@ -18,6 +48,8 @@ bcrypt = Bcrypt(app)
 # initialise database
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+activity_logger = logging.getLogger("activity-logger")
 
 login_manager = LoginManager()  # Add this line
 login_manager.init_app(app)  # Add this line
@@ -42,6 +74,39 @@ Talisman(app, content_security_policy={
         'data:',
     ]
 }, content_security_policy_nonce_in=['script-src', 'style-src'])
+
+
+def access_required(role="any"):
+    """
+    see: https://flask.palletsprojects.com/en/2.1.x/patterns/viewdecorators/
+    """
+
+    def wrapper(fn):
+        @wraps(fn)
+        def decorated_view(*args, **kwargs):
+            if current_user.is_anonymous:
+                flash("You need to login to access this resource.", "danger")
+                return redirect(url_for('users.login', next=request.url))
+
+            elif current_user.is_authenticated and role.lower() == "admin" and not current_user.is_admin():
+                current_user.log_unauthorised_access(role)
+                flash("You need to login with \"Admin\" role to access this resource.", "danger")
+                return redirect(url_for('users.login', next=request.url))
+
+            elif current_user.is_authenticated and role.lower() == "user" and not current_user.is_user():
+                current_user.log_unauthorised_access(role)
+                flash("You need to login with \"User\" role to access this resource.", "danger")
+                return redirect(url_for('users.login', next=request.url))
+
+            elif current_user.is_authenticated and role.lower() == "any" and not current_user.is_user() and not current_user.is_admin():
+                current_user.log_unauthorised_access(role)
+                flash("You need to login with \"User\" or \"Admin\" role to access this resource.", "danger")
+                return redirect(url_for('users.login', next=request.url))
+            return fn(*args, **kwargs)
+
+        return decorated_view
+
+    return wrapper
 
 
 # HOME PAGE VIEW

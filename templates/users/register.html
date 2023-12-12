@@ -88,7 +88,7 @@
             </div>
             <div class="field">
                 <div class="control">
-                    {{ form.date_of_birth(class="input", placeholder="Date Of Birth") }}
+                    {{ form.date_of_birth(class="input", pattern='^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(19|20)\d\d$', placeholder="Date Of Birth") }}
                     {% if form.date_of_birth.errors %}
                     <ul class="has-text-danger">
                         {% for error in form.date_of_birth.errors %}

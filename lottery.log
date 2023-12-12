@@ -1,0 +1,1 @@
+[2023-12-12 13:03:59,575] [RemoteAddress(127.0.0.1) | URL(https://127.0.0.1:5000/lottery)] [ERROR | models] Unauthorised Access: UserID(2) Username(kyher@mailinator.com) Role(admin) RequestedRole(user) RemoteAddress(127.0.0.1)
