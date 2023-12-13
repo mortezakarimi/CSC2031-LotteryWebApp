@@ -42,7 +42,7 @@
                     </div>
                 </div>
                 <div class="field">
-                    <button type="button" class="button is-info is-centered" onclick="luckyDip()">Lucky
+                    <button type="button" class="button is-info is-centered" id="lucky-dip">Lucky
                         Dip
                     </button>
                 </div>
@@ -68,7 +68,7 @@
 
                     {# render playable draws #}
                     {% for draw in playable_draws %}
-                        <p>{{ draw.numbers }}</p>
+                        <p>{{ draw.view_numbers() }}</p>
                     {% endfor %}
 
                 </div>
@@ -97,7 +97,7 @@
                         {% for draw in results %}
                             <tr>
                                 <td>{{ draw.lottery_round }}</td>
-                                <td>{{ draw.numbers }}</td>
+                                <td>{{ draw.view_numbers() }}</td>
                                 <td>{{ draw.been_played }}</td>
                                 {% if draw.matches_master %}
                                     <td style="background-color: yellow">{{ draw.matches_master }}</td>

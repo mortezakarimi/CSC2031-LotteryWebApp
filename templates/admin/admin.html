@@ -50,7 +50,7 @@
             {% if winning_draw %}
                 <div class="field">
                     <p>Round {{ winning_draw.lottery_round }}</p>
-                    <p>{{ winning_draw.numbers }}</p>
+                    <p>{{ winning_draw.view_draw().numbers }}</p>
                 </div>
             {% endif %}
             <form action="/view_winning_draw">

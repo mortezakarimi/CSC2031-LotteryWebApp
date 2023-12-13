@@ -27,3 +27,10 @@ function luckyDip() {
         document.getElementById("no" + (i + 1)).value = a[i];
     }
 }
+
+window.addEventListener('load', function () {
+    const luckyDipButton = document.getElementById("lucky-dip")
+    if (luckyDipButton) {
+        luckyDipButton.addEventListener("click", luckyDip);
+    }
+});

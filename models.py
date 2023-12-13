@@ -2,11 +2,21 @@ import logging
 from datetime import datetime
 
 import pyotp
+from cryptography.fernet import Fernet
 from flask import request
 from flask_login import UserMixin
 from sqlalchemy import func
+from sqlalchemy.orm import make_transient
 
 from app import db, app, bcrypt
+
+
+def encrypt(data, secret_key):
+    return Fernet(secret_key).encrypt(bytes(data, 'utf-8'))
+
+
+def decrypt(data, secret_key):
+    return Fernet(secret_key).decrypt(data).decode('utf-8')
 
 
 class User(db.Model, UserMixin):
@@ -26,6 +36,7 @@ class User(db.Model, UserMixin):
 
     date_of_birth = db.Column(db.String(10), nullable=False)
     postcode = db.Column(db.String(7), nullable=False)
+    secret_key = db.Column(db.BLOB, nullable=False, default=Fernet.generate_key())
     pin_key = db.Column(db.String(32), unique=True, nullable=False, default=pyotp.random_base32())
     register_date = db.Column(db.DateTime(), nullable=False, default=func.current_timestamp())
     previous_login = db.Column(db.DateTime(), nullable=True)
@@ -35,7 +46,7 @@ class User(db.Model, UserMixin):
     total_login = db.Column(db.Integer, nullable=False, default=0)
 
     # Define the relationship to Draw
-    draws = db.relationship('Draw')
+    draws = db.relationship('Draw', backref='user')
 
     def __init__(self, email, firstname, lastname, phone, password, role, date_of_birth, postcode):
         self.email = email
@@ -46,6 +57,7 @@ class User(db.Model, UserMixin):
         self.role = role
         self.date_of_birth = date_of_birth
         self.postcode = postcode
+        self.secret_key = Fernet.generate_key()
         self.pin_key = pyotp.random_base32()
         self.total_login = 0
         self.register_date = datetime.now()
@@ -83,7 +95,7 @@ class User(db.Model, UserMixin):
         logging.warning("SECURITY - User registration [%s, %s]", self.email, request.remote_addr)
 
     def update_login_log(self):
-        logging.warning("SECURITY - Log in [%s, %s, %s, %s]", self.id, self.email,self.role,
+        logging.warning("SECURITY - Log in [%s, %s, %s, %s]", self.id, self.email, self.role,
                         request.remote_addr)
         self.total_login = self.total_login + 1
         self.previous_login_ip = self.current_login_ip
@@ -123,13 +135,22 @@ class Draw(db.Model):
     # Lottery round that draw is used
     lottery_round = db.Column(db.Integer, nullable=False, default=0)
 
-    def __init__(self, user_id, numbers, master_draw, lottery_round):
+    def __init__(self, user_id, numbers, master_draw, lottery_round, secret_key):
         self.user_id = user_id
-        self.numbers = numbers
+        self.numbers = encrypt(numbers, secret_key)
         self.been_played = False
         self.matches_master = False
         self.master_draw = master_draw
         self.lottery_round = lottery_round
+
+    def view_draw(self):
+        secret_key = self.user.secret_key
+        make_transient(self)
+        self.numbers = decrypt(self.numbers, secret_key)
+        return self
+
+    def view_numbers(self):
+        return decrypt(self.numbers, self.user.secret_key)
 
 
 def init_db():
@@ -137,7 +158,7 @@ def init_db():
         db.drop_all()
         db.create_all()
         admin = User(email='admin@email.com',
-                     password=bcrypt.generate_password_hash('Admin1!'),
+                     password='Admin1!',
                      firstname='Alice',
                      lastname='Jones',
                      phone='0191-123-4567',
@@ -147,4 +168,17 @@ def init_db():
         admin.pin_key = 'NLGSMW2FX7UOM26VVBKWREMIF2FFFURR'
 
         db.session.add(admin)
+
+        # Add custom user
+        user = User(email='xavuhire@mailinator.com',
+                    password='User1!',
+                    firstname='Althea',
+                    lastname='Curtis',
+                    phone='7646-184-2932',
+                    role='user',
+                    date_of_birth='13/04/1974',
+                    postcode='A1 2BC')
+        user.pin_key = 'JL34FERKBY72FYZELMBEL273GXYW4Q7V'
+        db.session.add(user)
+
         db.session.commit()

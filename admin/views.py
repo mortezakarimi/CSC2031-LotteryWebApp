@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, flash, redirect, url_for
 from flask_login import login_required, current_user
 
 from app import db, requires_roles
-from models import User, Draw
+from models import User, Draw, decrypt
 from users.forms import RegisterForm
 
 # CONFIG
@@ -49,7 +49,7 @@ def generate_winning_draw():
 
     # create a new draw object.
     new_winning_draw = Draw(user_id=current_user.id, numbers=winning_numbers_string, master_draw=True,
-                            lottery_round=lottery_round)
+                            lottery_round=lottery_round, secret_key=current_user.secret_key)
 
     # add the new winning draw to the database
     db.session.add(new_winning_draw)
@@ -84,13 +84,13 @@ def view_winning_draw():
 @requires_roles("admin")
 def run_lottery():
     # get current unplayed winning draw
-    current_winning_draw = Draw.query.filter_by(master_draw=True, been_played=False).first()
+    current_winning_draw: Draw = Draw.query.filter_by(master_draw=True, been_played=False).first()
 
     # if current unplayed winning draw exists
     if current_winning_draw:
 
         # get all unplayed user draws
-        user_draws = Draw.query.filter_by(master_draw=False, been_played=False).all()
+        user_draws: list[Draw] = Draw.query.filter_by(master_draw=False, been_played=False).all()
         results = []
 
         # if at least one unplayed user draw exists
@@ -108,9 +108,9 @@ def run_lottery():
                 user = User.query.filter_by(id=draw.user_id).first()
 
                 # if user draw matches current unplayed winning draw
-                if draw.numbers == current_winning_draw.numbers:
+                if draw.view_numbers() == current_winning_draw.view_numbers():
                     # add details of winner to list of results
-                    results.append((current_winning_draw.lottery_round, draw.numbers, draw.user_id, user.email))
+                    results.append((current_winning_draw.lottery_round, draw.view_numbers(), draw.user_id, user.email))
 
                     # update draw as a winning draw (this will be used to highlight winning draws in the user's
                     # lottery page)
