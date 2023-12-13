@@ -2,7 +2,6 @@
 import logging
 import os
 from functools import wraps
-from logging.config import dictConfig
 
 import flask
 from dotenv import load_dotenv
@@ -14,31 +13,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_talisman import Talisman
 from werkzeug.exceptions import BadRequest, InternalServerError, Forbidden, NotFound, ServiceUnavailable
 
-dictConfig({
 
-    "version": 1,
-    "formatters": {
-        "activty": {
-            "format": "[%(asctime)s] [RemoteAddress(%(remote_addr)s) | URL(%(request_url)s)] [%(levelname)s | %(module)s] %(message)s",
-        },
-    },
-    "handlers": {
-        "file": {
-            "class": "logging.FileHandler",
-            "filename": "lottery.log",
-            "formatter": "activty",
-        },
-    },
+class SecurityFilter(logging.Filter):
+    def filter(self, record):
+        return 'SECURITY' in record.getMessage()
 
-    "loggers": {
-        "activity-logger": {
-            "level": "INFO",
-            "handlers": ["file"],
-            "propagate": False,
-        }
-    },
-
-})
 
 load_dotenv()  # take environment variables from .env.
 # CONFIG
@@ -49,7 +28,13 @@ bcrypt = Bcrypt(app)
 db = SQLAlchemy(app)
 qrcode = QRcode(app)
 
-activity_logger = logging.getLogger("activity-logger")
+logger = logging.getLogger()
+file_handler = logging.FileHandler('lottery.log', 'a')
+file_handler.setLevel(logging.WARNING)
+file_handler.addFilter(SecurityFilter())
+formatter = logging.Formatter('%(asctime)s : %(message)s', '%m/%d/%Y %I:%M:%S %p')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 login_manager = LoginManager()  # Add this line
 login_manager.init_app(app)  # Add this line
@@ -92,7 +77,7 @@ def requires_roles(*roles):
                 return redirect(url_for('users.login', next=request.url))
 
             elif current_user.is_authenticated and not current_user.can_action(roles):
-                current_user.log_unauthorised_access(roles)
+                current_user.log_unauthorised_access()
                 flask.abort(403)
 
             return fn(*args, **kwargs)

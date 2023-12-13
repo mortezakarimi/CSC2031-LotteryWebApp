@@ -1,9 +1,10 @@
 # IMPORTS
+import logging
 
 from flask import Blueprint, render_template, flash, redirect, url_for, current_app, session, request
 from flask_login import login_user, current_user, login_required, logout_user
 
-from app import db, activity_logger, requires_roles
+from app import db, requires_roles
 from models import User
 from users.forms import RegisterForm, LoginForm, ChangePasswordForm
 from users.utilities import is_login_attempt_available, is_login_ok, process_authentication_attempts
@@ -94,9 +95,8 @@ def login():
         flash('Please check your login details and try again, {} login attempts remaining'.format(
             session['authentication_attempts']['remaining']), "danger")
 
-        activity_logger.warn("Invalid log in attempts Username(%s) RemoteAddress(%s)", form.username.data,
-                             request.remote_addr,
-                             extra={"user": "", "request_url": request.url, "remote_addr": request.remote_addr})
+        logging.warning("SECURITY - Invalid Login attempt [%s, %s]", form.username.data,
+                        request.remote_addr)
 
     return render_template('users/login.html', form=form)
 

@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 import pyotp
@@ -5,7 +6,7 @@ from flask import request
 from flask_login import UserMixin
 from sqlalchemy import func
 
-from app import db, app, bcrypt, activity_logger
+from app import db, app, bcrypt
 
 
 class User(db.Model, UserMixin):
@@ -79,25 +80,21 @@ class User(db.Model, UserMixin):
         return self.role in roles
 
     def registration_log(self):
-        activity_logger.info("User registered with Username(%s) RemoteAddress(%s)", self.email, request.remote_addr,
-                             extra={"user": self.id, "request_url": request.url, "remote_addr": request.remote_addr})
+        logging.warning("SECURITY - User registration [%s, %s]", self.email, request.remote_addr)
 
     def update_login_log(self):
-        activity_logger.info("User Logged in with UserID(%s) Username(%s) RemoteAddress(%s)", self.id, self.email,
-                             request.remote_addr,
-                             extra={"user": self.id, "request_url": request.url, "remote_addr": request.remote_addr})
+        logging.warning("SECURITY - Log in [%s, %s, %s, %s]", self.id, self.email,self.role,
+                        request.remote_addr)
         self.total_login = self.total_login + 1
         self.previous_login_ip = self.current_login_ip
         self.previous_login = self.current_login
         self.current_login = datetime.now()
         self.current_login_ip = request.remote_addr
 
-    def log_unauthorised_access(self, requested_role):
-        activity_logger.error(
-            "Unauthorised Access: UserID(%s) Username(%s) Role(%s) AcceptableRoles(%s) RemoteAddress(%s)", self.id,
-            self.email, self.role, requested_role,
-            request.remote_addr,
-            extra={"user": self.id, "request_url": request.url, "remote_addr": request.remote_addr})
+    def log_unauthorised_access(self):
+        logging.warning(
+            "SECURITY - Unauthorised Access: [%s, %s, %s, %s]", self.id,
+            self.email, self.role, request.remote_addr)
 
     def __repr__(self):
         return f"<user {self.email}>"
