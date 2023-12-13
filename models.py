@@ -25,9 +25,7 @@ class User(db.Model, UserMixin):
 
     date_of_birth = db.Column(db.String(10), nullable=False)
     postcode = db.Column(db.String(7), nullable=False)
-    is_two_factor_authentication_enabled = db.Column(
-        db.Boolean, nullable=False, default=False)
-    secret_token = db.Column(db.String(), unique=True)
+    pin_key = db.Column(db.String(32), unique=True, nullable=False, default=pyotp.random_base32())
     register_date = db.Column(db.DateTime(), nullable=False, default=func.current_timestamp())
     previous_login = db.Column(db.DateTime(), nullable=True)
     current_login = db.Column(db.DateTime(), nullable=True)
@@ -47,13 +45,13 @@ class User(db.Model, UserMixin):
         self.role = role
         self.date_of_birth = date_of_birth
         self.postcode = postcode
-        self.secret_token = pyotp.random_base32()
+        self.pin_key = pyotp.random_base32()
         self.total_login = 0
         self.register_date = datetime.now()
 
     def get_authentication_setup_uri(self):
-        return pyotp.totp.TOTP(self.secret_token).provisioning_uri(
-            name=self.email, issuer_name="CSC2031")
+        return pyotp.totp.TOTP(self.pin_key).provisioning_uri(
+            name=self.email, issuer_name="CSC2031 Lottery")
 
     def is_otp_valid(self, user_otp):
         totp = pyotp.parse_uri(self.get_authentication_setup_uri())
@@ -74,6 +72,12 @@ class User(db.Model, UserMixin):
     def is_user(self):
         return self.role == 'user'
 
+    def can_action(self, roles=None):
+        if roles is None:
+            roles = ['admin', 'user']
+
+        return self.role in roles
+
     def registration_log(self):
         activity_logger.info("User registered with Username(%s) RemoteAddress(%s)", self.email, request.remote_addr,
                              extra={"user": self.id, "request_url": request.url, "remote_addr": request.remote_addr})
@@ -90,7 +94,7 @@ class User(db.Model, UserMixin):
 
     def log_unauthorised_access(self, requested_role):
         activity_logger.error(
-            "Unauthorised Access: UserID(%s) Username(%s) Role(%s) RequestedRole(%s) RemoteAddress(%s)", self.id,
+            "Unauthorised Access: UserID(%s) Username(%s) Role(%s) AcceptableRoles(%s) RemoteAddress(%s)", self.id,
             self.email, self.role, requested_role,
             request.remote_addr,
             extra={"user": self.id, "request_url": request.url, "remote_addr": request.remote_addr})
@@ -136,11 +140,14 @@ def init_db():
         db.drop_all()
         db.create_all()
         admin = User(email='admin@email.com',
-                     password='Admin1!',
+                     password=bcrypt.generate_password_hash('Admin1!'),
                      firstname='Alice',
                      lastname='Jones',
                      phone='0191-123-4567',
-                     role='admin')
+                     role='admin',
+                     date_of_birth='01/01/1970',
+                     postcode='A1 2BC')
+        admin.pin_key = 'NLGSMW2FX7UOM26VVBKWREMIF2FFFURR'
 
         db.session.add(admin)
         db.session.commit()

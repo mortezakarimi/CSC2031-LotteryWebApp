@@ -2,7 +2,7 @@
 from flask import Blueprint, render_template, flash, redirect, url_for
 from flask_login import login_required
 
-from app import db, access_required
+from app import db, requires_roles
 from lottery.forms import DrawForm
 from models import Draw
 
@@ -14,7 +14,7 @@ lottery_blueprint = Blueprint('lottery', __name__, template_folder='templates')
 # view lottery page
 @lottery_blueprint.route('/lottery')
 @login_required
-@access_required(role="user")
+@requires_roles("user")
 def lottery():
     return render_template('lottery/lottery.html', name="PLACEHOLDER FOR FIRSTNAME")
 

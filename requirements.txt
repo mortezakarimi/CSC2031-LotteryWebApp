@@ -6,9 +6,8 @@ flask_wtf
 WTForms
 WTForms[email]
 flask-bcrypt
-Flask-Migrate
 pyotp
-qrcode
+flask-qrcode
 python-dotenv
 flask-talisman
 pyopenssl

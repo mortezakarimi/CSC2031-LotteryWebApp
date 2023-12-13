@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="column is-6 is-offset-3">
+        <h3 class="title is-3">Setup 2FA</h3>
+
+        <div class="box">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="notification is-danger">
+                        {{ messages[0] }}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <h5>Instructions!</h5>
+            <ul>
+                <li>Download <a
+                        href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en&gl=US"
+                        class="has-text-link"
+                        target="_blank">Google Authenticator</a> on your mobile.
+                </li>
+                <li>Set up a new authenticator under the account name "{{ username }}", scan the following
+                    QR code with your smartphone's authenticator app.
+                </li>
+            </ul>
+            <div class="text-center">
+                <figure class="image is-200x200">
+                    <img src="{{ qrcode(uri, box_size=5, border=5) }}" alt="Secret Token" width="200" height="200"/>
+                </figure>
+            </div>
+            <p>Once you set up, please go to <a href="{{ url_for('users.login') }}" class="has-text-link">Login</a> page</p>
+        </div>
+    </div>
+
+
+{% endblock %}

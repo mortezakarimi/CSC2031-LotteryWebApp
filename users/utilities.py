@@ -5,18 +5,21 @@ from flask import session, current_app
 from models import User
 
 
-def is_login_attempt_available():
-    if 'login_attempts' not in session:
-        session['login_attempts'] = {'remaining': int(current_app.config['LOGIN_ATTEMPTS_LIMIT']),
-                                     'last_try': datetime.now(timezone.utc)}
+def process_authentication_attempts():
+    if 'authentication_attempts' not in session:
+        session['authentication_attempts'] = {'remaining': int(current_app.config['LOGIN_ATTEMPTS_LIMIT']),
+                                              'last_try': datetime.now(timezone.utc)}
 
-    if session['login_attempts']['last_try'] - datetime.now(timezone.utc) >= timedelta(
+    if session['authentication_attempts']['last_try'] - datetime.now(timezone.utc) >= timedelta(
             hours=int(current_app.config['LOGIN_ATTEMPTS_HOURS_LIMIT'])):
-        session['login_attempts']['remaining'] = int(current_app.config['LOGIN_ATTEMPTS_LIMIT'])
+        session['authentication_attempts']['remaining'] = int(current_app.config['LOGIN_ATTEMPTS_LIMIT'])
 
-    session['login_attempts']['last_try'] = datetime.now(timezone.utc)
-    session['login_attempts']['remaining'] = session['login_attempts']['remaining'] - 1
-    return session['login_attempts']['remaining'] > 0
+    session['authentication_attempts']['last_try'] = datetime.now(timezone.utc)
+    session['authentication_attempts']['remaining'] = session['authentication_attempts']['remaining'] - 1
+
+
+def is_login_attempt_available():
+    return 'authentication_attempts' not in session or session['authentication_attempts']['remaining'] > 1
 
 
 def is_login_ok(form):

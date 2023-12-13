@@ -26,26 +26,26 @@
 
                 <div id="navbarMenuHeroA" class="navbar-menu">
                     <div class="navbar-end">
-                        <a href="{{ url_for('index') }}" class="navbar-item{{ ' is-active' if url_for('index') == url_for(request.endpoint) }}">
+                        <a href="{{ url_for('index') }}" class="navbar-item{{ ' is-active' if request.endpoint and url_for('index') == url_for(request.endpoint) }}">
                             Home
                         </a>
                         {% if current_user.is_anonymous %}
-                            <a href="{{ url_for('users.register') }}" class="navbar-item{{ ' is-active' if url_for('users.register') == url_for(request.endpoint) }}">
+                            <a href="{{ url_for('users.register') }}" class="navbar-item{{ ' is-active' if request.endpoint and url_for('users.register') == url_for(request.endpoint) }}">
                                 Register
                             </a>
-                            <a href="{{ url_for('users.login') }}" class="navbar-item{{ ' is-active' if url_for('users.login') == url_for(request.endpoint) }}">
+                            <a href="{{ url_for('users.login') }}" class="navbar-item{{ ' is-active' if request.endpoint and url_for('users.login') == url_for(request.endpoint) }}">
                                 Login
                             </a>
                         {% endif %}
 
                         {% if current_user.is_authenticated and current_user.is_user() %}
-                            <a href="{{ url_for('lottery.lottery') }}" class="navbar-item{{ ' is-active' if url_for('lottery.lottery') == url_for(request.endpoint) }}">
+                            <a href="{{ url_for('lottery.lottery') }}" class="navbar-item{{ ' is-active' if request.endpoint and url_for('lottery.lottery') == url_for(request.endpoint) }}">
                                 Lottery
                             </a>
                         {% endif %}
 
                         {% if current_user.is_authenticated and current_user.is_admin() %}
-                            <a href="{{ url_for('admin.admin') }}" class="navbar-item{{ ' is-active' if url_for('admin.admin') == url_for(request.endpoint)
+                            <a href="{{ url_for('admin.admin') }}" class="navbar-item{{ ' is-active' if request.endpoint and url_for('admin.admin') == url_for(request.endpoint)
                             or url_for('admin.generate_winning_draw') == url_for(request.endpoint)
                             or url_for('admin.view_winning_draw') == url_for(request.endpoint)
                             or url_for('admin.run_lottery') == url_for(request.endpoint)
@@ -59,10 +59,10 @@
                         {% endif %}
 
                         {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('users.account') }}" class="navbar-item{{ ' is-active' if url_for('users.account') == url_for(request.endpoint) }}">
+                            <a href="{{ url_for('users.account') }}" class="navbar-item{{ ' is-active' if request.endpoint and url_for('users.account') == url_for(request.endpoint) }}">
                                 Account
                             </a>
-                            <a href="{{ url_for('users.logout') }}" class="navbar-item{{ ' is-active' if url_for('users.logout') == url_for(request.endpoint) }}">
+                            <a href="{{ url_for('users.logout') }}" class="navbar-item{{ ' is-active' if request.endpoint and url_for('users.logout') == url_for(request.endpoint) }}">
                                 Logout
                             </a>
                         {% endif %}
