@@ -22,7 +22,10 @@ class SecurityFilter(logging.Filter):
 load_dotenv()  # take environment variables from .env.
 # CONFIG
 app = Flask(__name__)
+# automatic load environment values from loaded .env file and set as configs
 app.config.from_mapping(os.environ)
+# user flask bcrypt that handle generate salt using environment variable values and better configuration
+# https://flask-bcrypt.readthedocs.io/en/1.0.1/
 bcrypt = Bcrypt(app)
 # initialise database
 db = SQLAlchemy(app)
@@ -38,27 +41,32 @@ logger.addHandler(file_handler)
 
 login_manager = LoginManager()  # Add this line
 login_manager.init_app(app)  # Add this line
-Talisman(app, content_security_policy={
+csp = {
     'default-src': [
         '\'self\'',
-        'cdnjs.cloudflare.com',
-        'www.google.com',
-        'www.gstatic.com'
+        'https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css'
     ],
     'style-src': [
         '\'self\'',
-        'cdnjs.cloudflare.com'
+        'https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css'
     ],
     'script-src': [
         '\'self\'',
-        'www.google.com',
-        'www.gstatic.com'
+        '\'unsafe-inline\'',
+        'https://www.google.com/recaptcha/',
+        'https://www.gstatic.com/recaptcha/'
+    ],
+    'frame-src': [
+        '\'self\'',
+        'https://www.google.com/recaptcha/',
+        'https://recaptcha.google.com/recaptcha/'
     ],
     'img-src': [
         '\'self\'',
         'data:',
     ]
-}, content_security_policy_nonce_in=['script-src', 'style-src'])
+}
+Talisman(app, content_security_policy=csp, content_security_policy_nonce_in=['script-src', 'style-src'])
 
 
 def requires_roles(*roles):
