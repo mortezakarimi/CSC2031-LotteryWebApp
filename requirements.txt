@@ -11,3 +11,4 @@ flask-qrcode
 python-dotenv
 flask-talisman
 pyopenssl
+rsa

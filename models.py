@@ -1,8 +1,9 @@
 import logging
+import pickle
 from datetime import datetime
 
 import pyotp
-from cryptography.fernet import Fernet
+import rsa
 from flask import request
 from flask_login import UserMixin
 from sqlalchemy import func
@@ -11,12 +12,19 @@ from sqlalchemy.orm import make_transient
 from app import db, app, bcrypt
 
 
-def encrypt(data, secret_key):
-    return Fernet(secret_key).encrypt(bytes(data, 'utf-8'))
+# symmetric encryption
+# def encrypt(data, secret_key):
+#     return Fernet(secret_key).encrypt(bytes(data, 'utf-8'))
+#
+# symmetric encryption
+# def decrypt(data, secret_key):
+#     return Fernet(secret_key).decrypt(data).decode('utf-8')
+def encrypt(data, public_key):
+    return rsa.encrypt(str(data).encode(), public_key)
 
 
-def decrypt(data, secret_key):
-    return Fernet(secret_key).decrypt(data).decode('utf-8')
+def decrypt(encrypted_data: bytes, private_key):
+    return rsa.decrypt(encrypted_data, private_key).decode()
 
 
 class User(db.Model, UserMixin):
@@ -36,7 +44,11 @@ class User(db.Model, UserMixin):
 
     date_of_birth = db.Column(db.String(10), nullable=False)
     postcode = db.Column(db.String(7), nullable=False)
-    secret_key = db.Column(db.BLOB, nullable=False, default=Fernet.generate_key())
+    # symmetric encryption
+    # secret_key = db.Column(db.BLOB, nullable=False, default=Fernet.generate_key())
+    publicKey, privateKey = rsa.newkeys(512)
+    public_key = db.Column(db.BLOB, nullable=False, default=pickle.dumps(publicKey))
+    private_key = db.Column(db.BLOB, nullable=False, default=pickle.dumps(privateKey))
     pin_key = db.Column(db.String(32), unique=True, nullable=False, default=pyotp.random_base32())
     register_date = db.Column(db.DateTime(), nullable=False, default=func.current_timestamp())
     previous_login = db.Column(db.DateTime(), nullable=True)
@@ -57,7 +69,11 @@ class User(db.Model, UserMixin):
         self.role = role
         self.date_of_birth = date_of_birth
         self.postcode = postcode
-        self.secret_key = Fernet.generate_key()
+        # symmetric encryption
+        # self.secret_key = Fernet.generate_key()
+        publicKey, privateKey = rsa.newkeys(512)
+        self.public_key = pickle.dumps(publicKey)
+        self.private_key = pickle.dumps(privateKey)
         self.pin_key = pyotp.random_base32()
         self.total_login = 0
         self.register_date = datetime.now()
@@ -108,6 +124,15 @@ class User(db.Model, UserMixin):
             "SECURITY - Unauthorised Access: [%s, %s, %s, %s]", self.id,
             self.email, self.role, request.remote_addr)
 
+    def get_encryption_keys(self):
+        return pickle.loads(self.public_key), pickle.loads(self.public_key)
+
+    def get_public_key(self):
+        return pickle.loads(self.public_key)
+
+    def get_private_key(self):
+        return pickle.loads(self.private_key)
+
     def __repr__(self):
         return f"<user {self.email}>"
 
@@ -135,22 +160,45 @@ class Draw(db.Model):
     # Lottery round that draw is used
     lottery_round = db.Column(db.Integer, nullable=False, default=0)
 
-    def __init__(self, user_id, numbers, master_draw, lottery_round, secret_key):
+    def __init__(self, user_id, numbers, master_draw, lottery_round,
+                 # symmetric encryption
+                 # secret_key
+                 public_key
+                 ):
         self.user_id = user_id
-        self.numbers = encrypt(numbers, secret_key)
+        # symmetric encryption
+        # self.numbers = encrypt(numbers, secret_key)
+        self.numbers = encrypt(numbers, public_key)
         self.been_played = False
         self.matches_master = False
         self.master_draw = master_draw
         self.lottery_round = lottery_round
 
+    # symmetric encryption
+    # def view_draw(self):
+    #     secret_key = self.user.secret_key
+    #     make_transient(self)
+    #     self.numbers = decrypt(self.numbers, secret_key)
+    #     return self
+
+    # symmetric encryption
+    # def view_numbers(self):
+    #     try:
+    #       return decrypt(self.numbers, self.user.secret_key)
+    #     except:
+    #       return self.numbers
+    
     def view_draw(self):
-        secret_key = self.user.secret_key
+        private_key = self.user.get_private_key()
         make_transient(self)
-        self.numbers = decrypt(self.numbers, secret_key)
+        self.numbers = decrypt(self.numbers, private_key)
         return self
 
     def view_numbers(self):
-        return decrypt(self.numbers, self.user.secret_key)
+        try:
+            return decrypt(self.numbers, self.user.get_private_key())
+        except:
+            return self.numbers
 
 
 def init_db():

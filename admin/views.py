@@ -49,7 +49,7 @@ def generate_winning_draw():
 
     # create a new draw object.
     new_winning_draw = Draw(user_id=current_user.id, numbers=winning_numbers_string, master_draw=True,
-                            lottery_round=lottery_round, secret_key=current_user.secret_key)
+                            lottery_round=lottery_round, public_key=current_user.get_public_key())
 
     # add the new winning draw to the database
     db.session.add(new_winning_draw)
@@ -118,12 +118,14 @@ def run_lottery():
 
                 # update draw as played
                 draw.been_played = True
-
+                draw.numbers = draw.view_numbers()
+                current_winning_draw.numbers = current_winning_draw.view_numbers()
                 # update draw with current lottery round
                 draw.lottery_round = current_winning_draw.lottery_round
 
                 # commit draw changes to DB
                 db.session.add(draw)
+                db.session.add(current_winning_draw)
                 db.session.commit()
 
             # if no winners
