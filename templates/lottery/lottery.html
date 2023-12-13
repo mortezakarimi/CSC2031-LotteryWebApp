@@ -19,37 +19,79 @@
         <h4 class="title is-4">Create Draw</h4>
         <div class="box">
             {% if form %}
-            <form method="POST">
-                <div class="columns is-multiline is-centered">
-                    {{ form.csrf_token() }}
-                    <div class="column is-one-sixth">
-                        {{ form.number1(class="input", placeholder="No. 1") }}
+                <form method="POST">
+                    <div class="columns is-multiline is-centered">
+                        {{ form.csrf_token() }}
+                        <div class="column is-one-sixth">
+                            {{ form.number1(class="input", placeholder="No. 1") }}
+                            {% if form.submit.data and  form.number1.errors %}
+                                <ul class="has-text-danger">
+                                    {% for error in form.number1.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        <div class="column is-one-sixth">
+                            {{ form.number2(class="input", placeholder="No. 2") }}
+                            {% if form.submit.data and  form.number2.errors %}
+                                <ul class="has-text-danger">
+                                    {% for error in form.number2.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        <div class="column is-one-sixth">
+                            {{ form.number3(class="input", placeholder="No. 3") }}
+                            {% if form.submit.data and  form.number3.errors %}
+                                <ul class="has-text-danger">
+                                    {% for error in form.number3.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        <div class="column is-one-sixth">
+                            {{ form.number4(class="input", placeholder="No. 4") }}
+                            {% if form.submit.data and  form.number4.errors %}
+                                <ul class="has-text-danger">
+                                    {% for error in form.number4.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        <div class="column is-one-sixth">
+                            {{ form.number5(class="input", placeholder="No. 5") }}
+                            {% if  form.submit.data and form.number5.errors %}
+                                <ul class="has-text-danger">
+                                    {% for error in form.number5.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        <div class="column is-one-sixth">
+                            {{ form.number6(class="input", placeholder="No. 6") }}
+                            {% if form.submit.data and form.number6.errors %}
+                                <ul class="has-text-danger">
+                                    {% for error in form.number6.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="column is-one-sixth">
-                        {{ form.number2(class="input", placeholder="No. 2") }}
+                    <div class="field">
+                        <button type="button" class="button is-info is-centered" id="lucky-dip">Lucky
+                            Dip
+                        </button>
                     </div>
-                    <div class="column is-one-sixth">
-                        {{ form.number3(class="input", placeholder="No. 3") }}
+                    <div class="field">
+                        {{ form.submit(class="button is-info is-centered") }}
                     </div>
-                    <div class="column is-one-sixth">
-                        {{ form.number4(class="input", placeholder="No. 4") }}
-                    </div>
-                    <div class="column is-one-sixth">
-                        {{ form.number5(class="input", placeholder="No. 5") }}
-                    </div>
-                    <div class="column is-one-sixth">
-                        {{ form.number6(class="input", placeholder="No. 6") }}
-                    </div>
-                </div>
-                <div class="field">
-                    <button type="button" class="button is-info is-centered" id="lucky-dip">Lucky
-                        Dip
-                    </button>
-                </div>
-                <div class="field">
-                    {{ form.submit(class="button is-info is-centered") }}
-                </div>
-            </form>
+                </form>
             {% else %}
                 {# render play again button if current lottery round has been played #}
                 <form method="POST" action="/create_draw">

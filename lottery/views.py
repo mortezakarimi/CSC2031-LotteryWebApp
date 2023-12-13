@@ -42,7 +42,7 @@ def create_draw():
         flash('Draw %s submitted.' % submitted_numbers)
         return redirect(url_for('lottery.lottery'))
 
-    return render_template('lottery/lottery.html', name="PLACEHOLDER FOR FIRSTNAME", form=form)
+    return render_template('lottery/lottery.html', name=current_user.firstname, form=form)
 
 
 # view all draws that have not been played
@@ -51,7 +51,6 @@ def view_draws():
     # get all draws that have not been played [played=0]
     playable_draws = Draw.query.filter_by(been_played=False).all()
 
-    print(playable_draws)
     # if playable draws exist
     if len(playable_draws) != 0:
         # re-render lottery page with playable draws
