@@ -1,5 +1,5 @@
 # IMPORTS
-import random
+import secrets
 
 from flask import Blueprint, render_template, flash, redirect, url_for
 from flask_login import login_required, current_user
@@ -40,7 +40,7 @@ def generate_winning_draw():
         db.session.commit()
 
     # get new winning numbers for draw
-    winning_numbers = random.sample(range(1, 60), 6)
+    winning_numbers = [secrets.choice(range(1, 60)) for i in range(6)]
     winning_numbers.sort()
     winning_numbers_string = ''
     for i in range(6):
