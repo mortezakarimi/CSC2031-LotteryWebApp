@@ -1,4 +1,4 @@
-werkzeug==2.3.8
+werkzeug==3.0.1
 Flask
 flask_sqlalchemy
 flask_login
